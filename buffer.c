@@ -39,21 +39,26 @@ static int le_buffer;
 zend_class_entry *buffer_ce;
 
 
-static void microtime(zval str)
+static char *microtime()
 {
-    // char dot[6];
-    // zend_string *timestamp;
-    // *dot = "hello";
-    // timestamp = strpprintf(0, "%s", (char *) dot);
+    struct timeval tv;
+    zend_string *timestamp;
 
-    // return ZSTR_VAL(timestamp);
+    gettimeofday(&tv, NULL);
+    timestamp = strpprintf(0, "%ld%s%ld", (long) tv.tv_sec, (char *) NULL, (long) tv.tv_usec);
+
+    return ZSTR_VAL(timestamp);
 }
 
 
 static int initVar(zval *self, zend_string *key, zend_string *value, long expires)
 {
+    zval str;
+    ZVAL_STRINGL(&str, microtime(), strlen(microtime()));
+    convert_to_long(&str);
+
     zend_update_property_str(buffer_ce, self, ZEND_STRL("key"), key);
-    zend_update_property_long(buffer_ce, self, ZEND_STRL("createTime"), 1);
+    zend_update_property(buffer_ce, self, ZEND_STRL("createTime"), &str);
     zend_update_property_long(buffer_ce, self, ZEND_STRL("expireTime"), expires);
     zend_update_property_str(buffer_ce, self, ZEND_STRL("entity"), value);
     zend_update_property_long(buffer_ce, self, ZEND_STRL("hitCount"), 1);
@@ -79,6 +84,10 @@ PHP_METHOD(bufItem, __construct)
 
 PHP_METHOD(bufItem, isExpired)
 {
+    zval str;
+    ZVAL_STRINGL(&str, microtime(), strlen(microtime()));
+    convert_to_long(&str);
+
     zend_bool slient;
     zval *expireTime,
          *createTime,
@@ -86,7 +95,7 @@ PHP_METHOD(bufItem, isExpired)
 
     expireTime = zend_read_property(buffer_ce, getThis(), ZEND_STRL("expireTime"), slient, &rv);
     createTime = zend_read_property(buffer_ce, getThis(), ZEND_STRL("createTime"), slient, &rv);
-    int valid = (Z_LVAL_P(expireTime) != -1 && (10 - Z_LVAL_P(createTime)) > Z_LVAL_P(expireTime));
+    int valid = (Z_LVAL_P(expireTime) != -1 && (Z_LVAL(str) - Z_LVAL_P(createTime)) > Z_LVAL_P(expireTime));
     if (valid) {
         RETVAL_BOOL(1);
         return;
@@ -228,7 +237,7 @@ PHP_METHOD(bufItem, getTime)
     zval *self = getThis();
     value = zend_read_property(buffer_ce, self, ZEND_STRL("createTime"), slient, &rv);
 
-    RETVAL_STRING(Z_STRVAL_P(value));
+    RETVAL_LONG(Z_LVAL_P(value));
 }
 
 
