@@ -47,9 +47,7 @@ ZEND_TSRMLS_CACHE_EXTERN()
 
 #endif	/* PHP_BUFFER_H */
 
-
-#define TRUE  1
-#define FALSE 0
+extern zend_class_entry *buffer_ce;
 
 /*
  * Local variables:

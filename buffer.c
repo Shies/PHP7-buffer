@@ -41,11 +41,12 @@ zend_class_entry *buffer_ce;
 
 static char *microtime()
 {
-    struct timeval tv;
+    struct timeval time;
     zend_string *timestamp;
+    zend_string *dot = zend_string_init(".", strlen("."), 1);
 
-    gettimeofday(&tv, NULL);
-    timestamp = strpprintf(0, "%ld%s%ld", (long) tv.tv_sec, (char *) NULL, (long) tv.tv_usec);
+    gettimeofday(&time, NULL);
+    timestamp = strpprintf(0, "%ld%s%ld", (long) time.tv_sec, ZSTR_VAL(dot), (long) time.tv_usec);
 
     return ZSTR_VAL(timestamp);
 }
@@ -63,7 +64,7 @@ static int initVar(zval *self, zend_string *key, zend_string *value, long expire
     zend_update_property_str(buffer_ce, self, ZEND_STRL("entity"), value);
     zend_update_property_long(buffer_ce, self, ZEND_STRL("hitCount"), 1);
 
-    return 0;
+    return (int) SUCCESS;
 }
 
 
@@ -97,11 +98,11 @@ PHP_METHOD(bufItem, isExpired)
     createTime = zend_read_property(buffer_ce, getThis(), ZEND_STRL("createTime"), slient, &rv);
     int valid = (Z_LVAL_P(expireTime) != -1 && (Z_LVAL(str) - Z_LVAL_P(createTime)) > Z_LVAL_P(expireTime));
     if (valid) {
-        RETVAL_BOOL(1);
+        RETVAL_LONG(1);
         return;
     }
 
-    RETVAL_BOOL(0);
+    RETVAL_LONG(0);
 }
 
 
@@ -175,12 +176,15 @@ PHP_METHOD(bufItem, setEntity)
     }
 
     hotCount = zend_read_property(buffer_ce, self, ZEND_STRL("hitCount"), slient, &rv);
-    if (Z_LVAL_P(hotCount) > 0) {
-        Z_LVAL_P(hotCount) += 1;
+    if (Z_LVAL_P(hotCount) > 0)
+    {
+        long newval;
+        newval = Z_LVAL_P(hotCount) + 1;
+        ZVAL_LONG(hotCount, newval)
         zend_update_property(buffer_ce, self, ZEND_STRL("hitCount"), hotCount);
     }
 
-    RETVAL_BOOL(1);;
+    RETVAL_BOOL(1);
 }
 
 
@@ -193,8 +197,11 @@ PHP_METHOD(bufItem, getEntity)
     zval *self = getThis();
     entity = zend_read_property(buffer_ce, self, ZEND_STRL("entity"), slient, &rv);
     hotCount = zend_read_property(buffer_ce, self, ZEND_STRL("hitCount"), slient, &rv);
-    if (Z_LVAL_P(hotCount) > 0) {
-        Z_LVAL_P(hotCount) += 1;
+    if (Z_LVAL_P(hotCount) > 0)
+    {
+        long newval;
+        newval = Z_LVAL_P(hotCount) + 1;
+        ZVAL_LONG(hotCount, newval);
         zend_update_property(buffer_ce, self, ZEND_STRL("hitCount"), hotCount);
     }
 
@@ -224,7 +231,7 @@ PHP_METHOD(bufItem, getHitCount)
     zval *self = getThis();
     value = zend_read_property(buffer_ce, self, ZEND_STRL("hitCount"), slient, &rv);
 
-    RETVAL_STRING(Z_STRVAL_P(value));
+    RETVAL_LONG(Z_LVAL_P(value));
 }
 
 
@@ -241,9 +248,23 @@ PHP_METHOD(bufItem, getTime)
 }
 
 
-
 PHP_METHOD(bufItem, __invoke)
 {
+    zval retval,
+         function_name,
+         *self = getThis();
+
+    ZVAL_STRINGL(&function_name, "isExpired", strlen("isExpired"));
+    call_user_function(NULL, self, &function_name, &retval, 0, NULL TSRMLS_CC);
+    if (Z_LVAL(retval) == 1)
+    {
+        ZVAL_STRINGL(&function_name, "getEntity", strlen("getEntity"));
+        call_user_function(NULL, self, &function_name, &retval, 0, NULL TSRMLS_CC);
+        RETVAL_STRING(Z_STRVAL(retval));
+        return;
+    }
+
+    RETVAL_NULL();
 }
 
 
