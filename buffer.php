@@ -1,6 +1,6 @@
 <?php
 
-$buf = new bufItem('hello', 'world', -2);
+$buf = new Item('hello', 'world', -2);
 var_dump(call_user_func($buf)) . PHP_EOL;
 # echo $buf->getHitCount() . PHP_EOL;
 # echo $buf->getTime() . PHP_EOL;

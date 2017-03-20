@@ -45,9 +45,12 @@ extern zend_module_entry buffer_module_entry;
 ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
-#endif	/* PHP_BUFFER_H */
 
 extern zend_class_entry *buffer_ce;
+#define SIMPLE_STARTUP(module)                    ZEND_MODULE_STARTUP_N(buffer_##module)(INIT_FUNC_ARGS_PASSTHRU)
+#define SIMPLE_MINIT_FUNCTION(module)             ZEND_MINIT_FUNCTION(buffer_##module)
+
+#endif	/* PHP_BUFFER_H */
 
 /*
  * Local variables:

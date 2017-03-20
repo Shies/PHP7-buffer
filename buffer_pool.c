@@ -28,58 +28,20 @@
 #include "Zend/zend_alloc.h"
 #include "Zend/zend_interfaces.h"
 
-#include "buffer_item.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
 
 
-static int le_buffer;
-zend_class_entry *buffer_ce;
+zend_class_entry *buffer_pool_ce;
 
 
-PHP_INI_BEGIN()
-	PHP_INI_ENTRY("buffer.enable", "1",  PHP_INI_ALL, NULL)
-PHP_INI_END();
-
-
-const zend_function_entry demo_methods[] = {
+const zend_function_entry pool_methods[] = {
 	{NULL, NULL, NULL}	/* Must be the last line in buffer_functions[] */
 };
 
 
-PHP_MINIT_FUNCTION(buffer)
-{
-    REGISTER_INI_ENTRIES();
-    BUFFER_STARTUP(item);
-
-	return SUCCESS;
-}
-
-
-PHP_MSHUTDOWN_FUNCTION(buffer)
+BUFFER_MINIT_FUNCTION(pool)
 {
 	return SUCCESS;
 }
-
-
-zend_module_entry buffer_module_entry = {
-	STANDARD_MODULE_HEADER,
-	"buffer",
-	NULL,
-	PHP_MINIT(buffer),
-	PHP_MSHUTDOWN(buffer),
-	NULL,    /* Replace with NULL if there's nothing to do at request start */
-	NULL,	/* Replace with NULL if there's nothing to do at request end */
-	NULL,
-	PHP_BUFFER_VERSION,
-	STANDARD_MODULE_PROPERTIES
-};
-
-
-#ifdef COMPILE_DL_BUFFER
-#ifdef ZTS
-ZEND_TSRMLS_CACHE_DEFINE()
-#endif
-ZEND_GET_MODULE(buffer)
-#endif
 

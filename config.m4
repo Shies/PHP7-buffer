@@ -7,9 +7,9 @@ dnl without editing.
 
 dnl If your extension references something external, use with:
 
-dnl PHP_ARG_WITH(buffer, for buffer support,
-dnl Make sure that the comment is aligned:
-dnl [  --with-buffer             Include buffer support])
+PHP_ARG_WITH(buffer, for buffer support,
+Make sure that the comment is aligned:
+[  --with-buffer             Include buffer support])
 
 dnl Otherwise use enable:
 
@@ -59,5 +59,10 @@ if test "$PHP_BUFFER" != "no"; then
   dnl
   dnl PHP_SUBST(BUFFER_SHARED_LIBADD)
 
-  PHP_NEW_EXTENSION(buffer, buffer.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  PHP_NEW_EXTENSION(buffer,
+  buffer.c \
+  buffer_item.c \
+  buffer_pool.c \
+  buffer_org.c,
+  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 fi
