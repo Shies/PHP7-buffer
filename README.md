@@ -1,2 +1,2 @@
 # buffer
-buffer pool
+A high performance buffer pool for PHP
