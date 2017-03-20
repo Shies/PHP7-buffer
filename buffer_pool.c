@@ -25,23 +25,36 @@
 #include "php.h"
 #include "php_ini.h"
 #include "main/SAPI.h"
-#include "Zend/zend_alloc.h"
+#include "Zend/zend_API.h"
 #include "Zend/zend_interfaces.h"
 
+#include "php_buffer.h"
+#include "buffer_pool.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
-
 
 zend_class_entry *buffer_pool_ce;
 
 
+PHP_METHOD(buffer_pool, __construct)
+{
+    php_printf("%s", "Hello Pool!");
+}
+
+
 const zend_function_entry pool_methods[] = {
+    PHP_ME(buffer_pool, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 	{NULL, NULL, NULL}	/* Must be the last line in buffer_functions[] */
 };
 
 
 BUFFER_MINIT_FUNCTION(pool)
 {
+    zend_class_entry ce;
+
+    INIT_CLASS_ENTRY(ce, "Pool", pool_methods);
+    buffer_pool_ce = zend_register_internal_class(&ce TSRMLS_CC);
+
 	return SUCCESS;
 }
 

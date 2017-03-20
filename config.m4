@@ -60,9 +60,6 @@ if test "$PHP_BUFFER" != "no"; then
   dnl PHP_SUBST(BUFFER_SHARED_LIBADD)
 
   PHP_NEW_EXTENSION(buffer,
-  buffer.c \
-  buffer_item.c \
-  buffer_pool.c \
-  buffer_org.c,
+  buffer.c,
   $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 fi

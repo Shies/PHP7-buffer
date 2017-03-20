@@ -25,9 +25,11 @@
 #include "php.h"
 #include "php_ini.h"
 #include "main/SAPI.h"
-#include "Zend/zend_alloc.h"
+#include "Zend/zend_API.h"
 #include "Zend/zend_interfaces.h"
 
+#include "php_buffer.h"
+#include "buffer_org.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
 
@@ -35,13 +37,25 @@
 zend_class_entry *buffer_org_ce;
 
 
+PHP_METHOD(buffer_org, __construct)
+{
+    php_printf("%s", "Hi org!");
+}
+
+
 const zend_function_entry org_methods[] = {
+    PHP_ME(buffer_org, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 	{NULL, NULL, NULL}	/* Must be the last line in buffer_functions[] */
 };
 
 
 BUFFER_MINIT_FUNCTION(org)
 {
+    zend_class_entry ce;
+
+    INIT_CLASS_ENTRY(ce, "OrgManager", org_methods);
+    buffer_org_ce = zend_register_internal_class(&ce TSRMLS_CC);
+
 	return SUCCESS;
 }
 

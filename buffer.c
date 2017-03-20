@@ -26,11 +26,13 @@
 #include "php_ini.h"
 #include "main/SAPI.h"
 #include "Zend/zend_alloc.h"
-#include "Zend/zend_interfaces.h"
-
-#include "buffer_item.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
+
+#include "php_buffer.h"
+#include "buffer_item.h"
+#include "buffer_pool.h"
+#include "buffer_org.h"
 
 
 static int le_buffer;
@@ -42,7 +44,7 @@ PHP_INI_BEGIN()
 PHP_INI_END();
 
 
-const zend_function_entry demo_methods[] = {
+const zend_function_entry buffer_methods[] = {
 	{NULL, NULL, NULL}	/* Must be the last line in buffer_functions[] */
 };
 
@@ -50,7 +52,10 @@ const zend_function_entry demo_methods[] = {
 PHP_MINIT_FUNCTION(buffer)
 {
     REGISTER_INI_ENTRIES();
+
     BUFFER_STARTUP(item);
+    BUFFER_STARTUP(pool);
+    BUFFER_STARTUP(org);
 
 	return SUCCESS;
 }

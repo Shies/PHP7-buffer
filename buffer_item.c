@@ -25,9 +25,11 @@
 #include "php.h"
 #include "php_ini.h"
 #include "main/SAPI.h"
-#include "Zend/zend_alloc.h"
+#include "Zend/zend_API.h"
 #include "Zend/zend_interfaces.h"
 
+#include "php_buffer.h"
+#include "buffer_item.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
 
