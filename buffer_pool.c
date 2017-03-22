@@ -29,6 +29,7 @@
 #include "Zend/zend_interfaces.h"
 
 #include "php_buffer.h"
+#include "buffer_item.h"
 #include "buffer_pool.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
@@ -38,7 +39,66 @@ zend_class_entry *buffer_pool_ce;
 
 PHP_METHOD(buffer_pool, __construct)
 {
-    php_printf("%s", "Hello Pool!");
+    int capacity;
+    zval *self,
+         *itemval,
+         *construct;
+
+    self = getThis();
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &capacity) == FAILURE) {
+        return;
+    } else {
+        zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
+    }
+
+
+    php_printf("%s", "hello");
+    return;
+
+    /*
+    params = safe_emalloc(sizeof(zval), 2, 0);
+    ZVAL_COPY_VALUE(&params[0], (zval *)NULL);
+    ZVAL_COPY_VALUE(&params[1], (zval *)NULL);
+    call_user_function(NULL, itemval, method_construct, &retval, 2, params TSRMLS_CC);
+
+
+    if (Z_TYPE_P(itemval) == IS_OBJECT) {
+        php_printf("%s", "b1");
+        return;
+        zend_update_property(buffer_pool_ce, self, ZEND_STRL("head"), itemval);
+        zend_update_property(buffer_pool_ce, self, ZEND_STRL("tail"), itemval);
+    }
+
+    php_printf("%s", "b2");
+    return;
+    ZVAL_STRINGL(&function_name, "setNext", strlen("setNext"));
+    zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
+    php_printf("%s", "b3");
+    return;
+    if (Z_TYPE_P(head) == IS_OBJECT) {
+        ZVAL_OBJ(&args, Z_OBJ_P(head));
+        call_user_function(CG(function_table), itemval, &function_name, &retval, 1, &args TSRMLS_CC);
+        if (Z_TYPE(retval) != IS_OBJECT) {
+            php_printf("%s", "throw exception");
+            RETURN_FALSE;
+        }
+    }
+
+    ZVAL_STRINGL(&function_name, "setPrev", strlen("setPrev"));
+    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), 1, &rv);
+    php_printf("%s", "b4");
+    return;
+    if (Z_TYPE_P(tail) == IS_OBJECT) {
+        ZVAL_OBJ(&args, Z_OBJ_P(tail));
+        call_user_function(CG(function_table), itemval, &function_name, &retval, 1, &args TSRMLS_CC);
+        if (Z_TYPE(retval) != IS_OBJECT) {
+            php_printf("%s", "throw exception");
+            RETURN_FALSE;
+        }
+    }
+    */
+
+    RETURN_LONG(1);
 }
 
 
@@ -54,6 +114,13 @@ BUFFER_MINIT_FUNCTION(pool)
 
     INIT_CLASS_ENTRY(ce, "Pool", pool_methods);
     buffer_pool_ce = zend_register_internal_class(&ce TSRMLS_CC);
+
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("hashmap"), ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("head"), ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("tail"), ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("capacity"), ZEND_ACC_PUBLIC TSRMLS_CC);
+
+    BUFFER_STARTUP(item);
 
 	return SUCCESS;
 }
