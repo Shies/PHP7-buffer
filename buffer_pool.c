@@ -43,12 +43,9 @@ zend_class_entry *buffer_pool_ce;
 PHP_METHOD(buffer_pool, __construct)
 {
     int capacity;
-    zval *self,
-         *params,
-         itemval,
-         retval,
-         method,
-         rv;
+    zval *self, *params;
+    zval itemval, retval, method, rv;
+
 
     self = getThis();
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &capacity) == FAILURE) {
@@ -59,6 +56,7 @@ PHP_METHOD(buffer_pool, __construct)
 
     object_init_ex(&itemval, buffer_item_ce);
 
+
     zval knull, vnull;
     ZVAL_NULL(&knull);
     ZVAL_NULL(&vnull);
@@ -67,39 +65,33 @@ PHP_METHOD(buffer_pool, __construct)
     ZVAL_COPY_VALUE(&params[1], &vnull);
 
     ZVAL_STRINGL(&method, "__construct", strlen("__construct"));
-    call_user_function(EG(function_table), &itemval, &method, &retval, 2, params TSRMLS_CC);
+    call_user_function(NULL, &itemval, &method, &retval, 2, params TSRMLS_CC);
+
 
     if (Z_TYPE(itemval) == IS_OBJECT) {
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("head"), &itemval);
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("tail"), &itemval);
     }
 
-    ZVAL_STRINGL(&method, "setNext", strlen("setNext"));
     zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
     if (Z_TYPE_P(head) == IS_OBJECT) {
-        ZVAL_OBJ(params, Z_OBJ_P(head));
-        call_user_function(EG(function_table), &itemval, &method, &retval, 1, params TSRMLS_CC);
-        /*
-        if (Z_TYPE(retval) != _IS_BOOL) {
-            php_printf("%s", "throw exception");
-            RETURN_FALSE;
-        }
-        */
+
+        // TODO;
     }
 
-    ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
     zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), 1, &rv);
     if (Z_TYPE_P(tail) == IS_OBJECT) {
-        ZVAL_OBJ(params, Z_OBJ_P(tail));
-        call_user_function(EG(function_table), &itemval, &method, &retval, 1, params TSRMLS_CC);
+        // TODO;
         /*
+        ZVAL_OBJ(params, Z_OBJ_P(tail));
+        ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
+        call_user_function(NULL, &itemval, &method, &retval, 1, params TSRMLS_CC);
         if (Z_TYPE(retval) != _IS_BOOL) {
             php_printf("%s", "throw exception");
             RETURN_FALSE;
         }
         */
     }
-
 
     RETURN_LONG(1);
 }

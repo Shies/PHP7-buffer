@@ -28,5 +28,5 @@ $p = new Pool(10);
 var_dump($p->capacity);
 var_dump($p->head);
 var_dump($p->tail);
-var_dump($p->head->getNext());
-var_dump($p->tail->getPrev());
+var_dump($p->getNext());
+var_dump($p->getPrev());
