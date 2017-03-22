@@ -31,8 +31,7 @@
 #include "php_buffer.h"
 #include "buffer_item.h"
 #include "buffer_pool.h"
-#include "ext/standard/info.h"
-#include "ext/standard/php_string.h"
+
 
 zend_class_entry *buffer_pool_ce;
 
@@ -45,13 +44,13 @@ PHP_METHOD(buffer_pool, __construct)
          *construct;
 
     self = getThis();
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &capacity) == FAILURE) {
+    if (zend_parse_parameters_throw(ZEND_NUM_ARGS() TSRMLS_CC, "l", &capacity) == FAILURE) {
         return;
     } else {
         zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
     }
 
-
+    ZVAL_STRINGL(construct, "construct", strlen("construct"));
     php_printf("%s", "hello");
     return;
 
