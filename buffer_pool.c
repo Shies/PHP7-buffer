@@ -42,9 +42,11 @@ zend_class_entry *buffer_pool_ce;
 
 PHP_METHOD(buffer_pool, __construct)
 {
-    int capacity;
-    zval *self, *params;
+    int capacity, result;
+    zval *self, *params, *paramsval;
     zval itemval, retval, method, rv;
+    zend_bool slient;
+    zval item;
 
 
     self = getThis();
@@ -55,6 +57,7 @@ PHP_METHOD(buffer_pool, __construct)
     }
 
     object_init_ex(&itemval, buffer_item_ce);
+    // ZVAL_ZVAL(&item, &itemval, 0, 1);
 
 
     zval knull, vnull;
@@ -73,25 +76,38 @@ PHP_METHOD(buffer_pool, __construct)
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("tail"), &itemval);
     }
 
-    zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
+    zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), slient, &rv);
     if (Z_TYPE_P(head) == IS_OBJECT) {
+        ZVAL_STRINGL(&method, "setNext", strlen("setNext"));
 
-        // TODO;
-    }
+        // params = safe_emalloc(sizeof(zval), 1, 0);
+        // ZVAL_COPY_VALUE(&params[0], head);
+        call_user_function(NULL, &item, &method, &retval, 1, head TSRMLS_CC);
 
-    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), 1, &rv);
-    if (Z_TYPE_P(tail) == IS_OBJECT) {
-        // TODO;
         /*
-        ZVAL_OBJ(params, Z_OBJ_P(tail));
-        ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
-        call_user_function(NULL, &itemval, &method, &retval, 1, params TSRMLS_CC);
         if (Z_TYPE(retval) != _IS_BOOL) {
             php_printf("%s", "throw exception");
             RETURN_FALSE;
         }
         */
     }
+
+    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), slient, &rv);
+    if (Z_TYPE_P(tail) == IS_OBJECT) {
+        ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
+
+        params = safe_emalloc(sizeof(zval), 1, 0);
+        ZVAL_COPY_VALUE(&params[0], tail);
+        // call_user_func_array(&item, "__construct", 1, params);
+
+        /*
+        if (Z_TYPE(retval) != _IS_BOOL) {
+            php_printf("%s", "throw exception");
+            RETURN_FALSE;
+        }
+        */
+    }
+
 
     RETURN_LONG(1);
 }
