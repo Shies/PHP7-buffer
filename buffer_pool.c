@@ -43,7 +43,7 @@ zend_class_entry *buffer_pool_ce;
 PHP_METHOD(buffer_pool, __construct)
 {
     int capacity, result;
-    zval *self, *params, *paramsval;
+    zval *self, *params;
     zval itemval, retval, method, rv;
     zend_bool slient;
     zval item;
@@ -57,8 +57,6 @@ PHP_METHOD(buffer_pool, __construct)
     }
 
     object_init_ex(&itemval, buffer_item_ce);
-    // ZVAL_ZVAL(&item, &itemval, 0, 1);
-
 
     zval knull, vnull;
     ZVAL_NULL(&knull);
@@ -77,12 +75,12 @@ PHP_METHOD(buffer_pool, __construct)
     }
 
     zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), slient, &rv);
+    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), slient, &rv);
     if (Z_TYPE_P(head) == IS_OBJECT) {
         ZVAL_STRINGL(&method, "setNext", strlen("setNext"));
-
         // params = safe_emalloc(sizeof(zval), 1, 0);
         // ZVAL_COPY_VALUE(&params[0], head);
-        call_user_function(NULL, &item, &method, &retval, 1, head TSRMLS_CC);
+        call_user_function(&(buffer_item_ce)->function_table, &itemval, &method, &retval, 1, tail TSRMLS_CC);
 
         /*
         if (Z_TYPE(retval) != _IS_BOOL) {
@@ -92,13 +90,12 @@ PHP_METHOD(buffer_pool, __construct)
         */
     }
 
-    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), slient, &rv);
     if (Z_TYPE_P(tail) == IS_OBJECT) {
         ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
 
-        params = safe_emalloc(sizeof(zval), 1, 0);
-        ZVAL_COPY_VALUE(&params[0], tail);
-        // call_user_func_array(&item, "__construct", 1, params);
+        // params = safe_emalloc(sizeof(zval), 1, 0);
+        // ZVAL_COPY_VALUE(&params[0], tail);
+        call_user_function(&(buffer_item_ce)->function_table, &itemval, &method, &retval, 1, head TSRMLS_CC);
 
         /*
         if (Z_TYPE(retval) != _IS_BOOL) {

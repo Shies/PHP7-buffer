@@ -24,9 +24,13 @@ var_dump($buf->setNext('bar'));
 var_dump($buf->getNext());
 */
 
-$p = new Pool(10);
+# $p = new Pool(10);
 # var_dump($p->capacity);
 # var_dump($p->head);
 # var_dump($p->tail);
-var_dump($p->head->getNext());
-var_dump($p->head->getPrev());
+# var_dump($p->head->getNext());
+# var_dump($p->head->getPrev());
+
+// ------------------------------- //
+$p = OrgManager::getInstance()->load("shies");
+print_r(OrgManager::$pool);
