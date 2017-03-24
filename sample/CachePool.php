@@ -66,8 +66,7 @@ class CachePool
     public function clear()
     {
         $this->hashmap = [];
-        $this->head = new CacheItem(null, null);
-        $this->tail = new CacheItem(null, null);
+        $this->head = $this->tail = null;
 
         return $this;
     }
@@ -80,13 +79,12 @@ class CachePool
      */
     public function get($key = null)
     {
-        $node = $this->hashmap[$key];
-
         // 检查当前节点对象是否存活
         if (!isset($this->hashmap[$key])) {
             return false;
         }
 
+        $node = $this->hashmap[$key];
         if (sizeof($this->hashmap) > 0) {
             // refresh the access
             $this->detach($node)->attach($this->head, $node);
