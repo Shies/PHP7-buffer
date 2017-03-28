@@ -41,11 +41,50 @@
 zend_class_entry *buffer_pool_ce;
 
 
+static zval call_user_func_array(zval *object, char *method_name, int paramlen, zval *paramval[3])
+{
+    zval retval, method, *params;
+    if (Z_TYPE_P(object) != IS_OBJECT) {
+        ZVAL_NULL(&retval);
+        return (zval) retval;
+    }
+
+    if (1 == paramlen) {
+        ZVAL_STRINGL(&method, method_name, strlen(method_name));
+        call_user_function(NULL, object, &method, &retval, 1, *paramval TSRMLS_CC);
+    } else if (2 == paramlen) {
+        params = safe_emalloc(sizeof(zval), 2, 0);
+        ZVAL_COPY_VALUE(&params[0], paramval[0]);
+        ZVAL_COPY_VALUE(&params[1], paramval[1]);
+        ZVAL_STRINGL(&method, method_name, strlen(method_name));
+        call_user_function(NULL, object, &method, &retval, 2, params TSRMLS_CC);
+    } else if (3 == paramlen) {
+        params = safe_emalloc(sizeof(zval), 3, 0);
+        ZVAL_COPY_VALUE(&params[0], paramval[0]);
+        ZVAL_COPY_VALUE(&params[1], paramval[1]);
+        ZVAL_COPY_VALUE(&params[2], paramval[2]);
+        ZVAL_STRINGL(&method, method_name, strlen(method_name));
+        call_user_function(NULL, object, &method, &retval, 3, params TSRMLS_CC);
+    } else {
+        ZVAL_STRINGL(&method, method_name, strlen(method_name));
+        call_user_function(NULL, object, &method, &retval, 0, NULL TSRMLS_CC);
+    }
+
+    return retval;
+}
+
+
+static int initObj(zval *self, zend_string *key, zval *hashmap)
+{
+    return (int) SUCCESS;
+}
+
+
 PHP_METHOD(buffer_pool, __construct)
 {
-    int capacity, result;
-    zval *self, *params;
-    zval retval, method, map, itemval;
+    int capacity;
+    zval *self, *params[2];
+    zval retval, map, itemval;
     zend_bool slient;
     zval rv = {{0}};
 
@@ -55,8 +94,8 @@ PHP_METHOD(buffer_pool, __construct)
         return;
     } else {
         array_init(&map);
-        zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), &map);
+        zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
     }
 
     object_init_ex(&itemval, buffer_item_ce);
@@ -64,12 +103,9 @@ PHP_METHOD(buffer_pool, __construct)
     zval knull, vnull;
     ZVAL_NULL(&knull);
     ZVAL_NULL(&vnull);
-    params = safe_emalloc(sizeof(zval), 2, 0);
-    ZVAL_COPY_VALUE(&params[0], &knull);
-    ZVAL_COPY_VALUE(&params[1], &vnull);
-
-    ZVAL_STRINGL(&method, "__construct", strlen("__construct"));
-    call_user_function(NULL, &itemval, &method, &retval, 2, params TSRMLS_CC);
+    params[0] = (zval *)&knull;
+    params[1] = (zval *)&vnull;
+    call_user_func_array(&itemval, "__construct", 2, params);
 
 
     if (Z_TYPE(itemval) == IS_OBJECT) {
@@ -126,7 +162,7 @@ PHP_METHOD(buffer_pool, get)
 {
     zend_string *key;
     zval *hashmap, *node, *head;
-    zval *params, *self;
+    zval *params[2], *self;
     zval method, retval, rv;
 
     self = getThis();
@@ -146,22 +182,16 @@ PHP_METHOD(buffer_pool, get)
 
     int optionCount = zend_hash_num_elements(Z_ARRVAL_P(hashmap));
     if (optionCount > 0) {
-        ZVAL_STRINGL(&method, "detach", strlen("detach"));
-        call_user_function(NULL, self, &method, &retval, 1, node TSRMLS_CC);
-
+        retval = call_user_func_array(self, "detach", 1, &node);
         if (Z_TYPE(retval) == IS_OBJECT) {
             head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
-            ZVAL_STRINGL(&method, "attach", strlen("attach"));
-            params = safe_emalloc(sizeof(zval), 2, 0);
-            ZVAL_COPY_VALUE(&params[0], head);
-            ZVAL_COPY_VALUE(&params[1], node);
-            call_user_function(NULL, self, &method, &retval, 2, params TSRMLS_CC);
+            params[0] = head;
+            params[1] = node;
+            call_user_func_array(self, "attach", 2, params);
         }
     }
 
-    ZVAL_STRINGL(&method, "getEntity", strlen("getEntity"));
-    call_user_function(NULL, node, &method, &retval, 0, NULL TSRMLS_CC);
-
+    retval = call_user_func_array(node, "getEntity", 0, NULL);
     RETURN_STRING(Z_STRVAL(retval));
 }
 
@@ -171,8 +201,8 @@ PHP_METHOD(buffer_pool, set)
 {
     int expired;
     zend_string *key, *value;
-    zval *capacity, *self, *node, *hashmap, *params, *head;
-    zval method, retval, itemval;
+    zval *capacity, *self, *node, *hashmap, *head, *params[3];
+    zval retval, itemval;
     zval kval, vval, ttl, simple;
     zval rv = {{0}};
 
@@ -191,21 +221,15 @@ PHP_METHOD(buffer_pool, set)
     if (zend_hash_exists(Z_ARRVAL_P(hashmap), key)) {
         node = zend_hash_find(Z_ARRVAL_P(hashmap), key);
         if (Z_TYPE_P(node) == IS_OBJECT) {
-            ZVAL_STRINGL(&method, "setEntity", strlen("setEntity"));
             ZVAL_STRINGL(&simple, ZSTR_VAL(value), ZSTR_LEN(value));
-            call_user_function(NULL, node, &method, &retval, 1, &simple TSRMLS_CC);
+            call_user_func_array(node, "setEntity", 1, (zval **)&simple);
+            call_user_func_array(self, "detach", 1, &node);
 
-            ZVAL_STRINGL(&method, "detach", strlen("detach"));
-            call_user_function(NULL, self, &method, &retval, 1, node TSRMLS_CC);
-            if (Z_TYPE(retval) == IS_OBJECT) {
-                head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
-
-                ZVAL_STRINGL(&method, "attach", strlen("attach"));
-                params = safe_emalloc(sizeof(zval), 2, 0);
-                ZVAL_COPY_VALUE(&params[0], head);
-                ZVAL_COPY_VALUE(&params[1], node);
-                call_user_function(NULL, self, &method, &retval, 2, params TSRMLS_CC);
-            }
+            head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
+            params[0] = head;
+            params[1] = node;
+            call_user_func_array(self, "attach", 2, params);
+            RETURN_BOOL(1);
         }
     }
 
@@ -215,27 +239,21 @@ PHP_METHOD(buffer_pool, set)
     ZVAL_STRINGL(&kval, ZSTR_VAL(key), ZSTR_LEN(key));
     ZVAL_STRINGL(&vval, ZSTR_VAL(value), ZSTR_LEN(value));
 
-    params = safe_emalloc(sizeof(zval), 3, 0);
-    ZVAL_COPY_VALUE(&params[0], &kval);
-    ZVAL_COPY_VALUE(&params[1], &vval);
-    ZVAL_COPY_VALUE(&params[2], &ttl);
-    ZVAL_STRINGL(&method, "__construct", strlen("__construct"));
-    call_user_function(NULL, &itemval, &method, &retval, 3, params TSRMLS_CC);
+    params[0] = (zval *)&kval;
+    params[1] = (zval *)&vval;
+    params[2] = (zval *)&ttl;
+    call_user_func_array(&itemval, "__construct", 3, params);
 
     add_assoc_zval_ex(hashmap, ZSTR_VAL(key), ZSTR_LEN(key), &itemval);
     zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), hashmap);
 
     head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
-    ZVAL_STRINGL(&method, "attach", strlen("attach"));
-    params = safe_emalloc(sizeof(zval), 2, 0);
-    ZVAL_COPY_VALUE(&params[0], head);
-    ZVAL_COPY_VALUE(&params[1], &itemval);
-    call_user_function(NULL, self, &method, &retval, 2, params TSRMLS_CC);
+    params[0] = (zval *)head;
+    params[1] = (zval *)&itemval;
+    call_user_func_array(self, "attach", 2, params);
 
-    ZVAL_STRINGL(&method, "release", strlen("release"));
-    call_user_function(NULL, self, &method, &retval, 0, NULL TSRMLS_CC);
-
-    RETURN_BOOL(&retval);
+    retval = call_user_func_array(self, "release", 0, NULL);
+    RETURN_BOOL(Z_TYPE(retval));
 }
 
 
@@ -243,8 +261,8 @@ PHP_METHOD(buffer_pool, set)
 PHP_METHOD(buffer_pool, release)
 {
     int optionCount;
-    zval *capacity, *hashmap, *self, *tail;
-    zval method, retval, retval1, retval2;
+    zval *capacity, *hashmap, method, *self, *tail;
+    zval *prev, *key;
     zval rv = {{0}};
 
     self = getThis();
@@ -254,17 +272,12 @@ PHP_METHOD(buffer_pool, release)
     optionCount = zend_hash_num_elements(Z_ARRVAL_P(hashmap));
     if (Z_LVAL_P(capacity) < optionCount) {
         tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), 1, &rv);
-        ZVAL_STRINGL(&method, "getPrev", strlen("getPrev"));
-        call_user_function(NULL, tail, &method, &retval, 0, NULL TSRMLS_CC);
-
-        if (Z_TYPE(retval) == IS_OBJECT) {
-            ZVAL_STRINGL(&method, "detach", strlen("detach"));
-            call_user_function(NULL, self, &method, &retval1, 1, &retval TSRMLS_CC);
-
-            ZVAL_STRINGL(&method, "getKey", strlen("getKey"));
-            call_user_function(NULL, &retval, &method, &retval2, 0, NULL TSRMLS_CC);
-            if (Z_STRVAL(retval2)) {
-                zend_hash_str_del(Z_ARRVAL_P(hashmap), Z_STRVAL(retval2), Z_STRLEN(retval2));
+        prev = zend_read_property(buffer_pool_ce, tail, ZEND_STRL("prev"), 1, &rv);
+        if (Z_TYPE_P(prev) == IS_OBJECT) {
+            call_user_func_array(self, "detach", 1, &prev);
+            key = zend_read_property(buffer_pool_ce, prev, ZEND_STRL("key"), 1, &rv);
+            if (Z_STRVAL_P(key)) {
+                zend_hash_str_del(Z_ARRVAL_P(hashmap), Z_STRVAL_P(key), Z_STRLEN_P(key));
                 RETURN_BOOL(1);
             }
         }
@@ -276,9 +289,9 @@ PHP_METHOD(buffer_pool, release)
 
 PHP_METHOD(buffer_pool, attach)
 {
-    zval *self, *head, *node;
-    zval method;
-    zval retval, retval1, retval2;
+    zval *self, *head, *node, *next, *prev;
+    zval method, rv;
+    zval retval;
 
     self = getThis();
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "oo", &head, &node) != SUCCESS) {
@@ -289,40 +302,32 @@ PHP_METHOD(buffer_pool, attach)
         RETURN_FALSE;
     }
 
-    ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
-    call_user_function(NULL, node, &method, &retval, 1, head TSRMLS_CC);
+    // node setPrev head
+    call_user_func_array(node, "setPrev", 1, &head);
 
-    ZVAL_STRINGL(&method, "getNext", strlen("getNext"));
-    call_user_function(NULL, head, &method, &retval1, 0, NULL TSRMLS_CC);
-    if (Z_TYPE(retval1) != IS_NULL) {
-        ZVAL_STRINGL(&method, "setNext", strlen("setNext"));
-        call_user_function(NULL, node, &method, &retval2, 1, &retval1 TSRMLS_CC);
+    next = zend_read_property(buffer_pool_ce, head, ZEND_STRL("next"), 1, &rv);
+    if (Z_TYPE_P(next) != IS_NULL) {
+        call_user_func_array(node, "setNext", 1, &next);
     }
 
-    ZVAL_STRINGL(&method, "getNext", strlen("getNext"));
-    call_user_function(NULL, node, &method, &retval, 0, NULL TSRMLS_CC);
-    if (Z_TYPE(retval) == IS_OBJECT) {
-        ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
-        call_user_function(NULL, &retval, &method, &retval1, 1, node TSRMLS_CC);
+    next = zend_read_property(buffer_pool_ce, node, ZEND_STRL("next"), 1, &rv);
+    prev = zend_read_property(buffer_pool_ce, node, ZEND_STRL("prev"), 1, &rv);
+    if (Z_TYPE_P(next) != IS_NULL) {
+        call_user_func_array(next, "setPrev", 1, &node);
     }
 
-    ZVAL_STRINGL(&method, "getPrev", strlen("getPrev"));
-    call_user_function(NULL, node, &method, &retval, 0, NULL TSRMLS_CC);
-    if (Z_TYPE(retval) == IS_OBJECT) {
-        ZVAL_STRINGL(&method, "setNext", strlen("setNext"));
-        call_user_function(NULL, &retval, &method, &retval1, 1, node TSRMLS_CC);
+    if (Z_TYPE_P(prev) != IS_NULL) {
+        retval = call_user_func_array(prev, "setNext", 1, &node);
     }
 
     RETURN_ZVAL(getThis(), 1, 0);
-
 }
 
 
 PHP_METHOD(buffer_pool, detach)
 {
-    zval *self, *node;
-    zval method;
-    zval retval, retval1, retval2;
+    zval *self, *node, *prev, *next;
+    zval method, rv;
 
     self = getThis();
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "o", &node) != SUCCESS) {
@@ -333,28 +338,17 @@ PHP_METHOD(buffer_pool, detach)
         RETURN_FALSE;
     }
 
-    ZVAL_STRINGL(&method, "getPrev", strlen("getPrev"));
-    call_user_function(NULL, node, &method, &retval, 0, NULL TSRMLS_CC);
-    if (Z_TYPE(retval) == IS_OBJECT) {
-        ZVAL_STRINGL(&method, "getNext", strlen("getNext"));
-        call_user_function(NULL, node, &method, &retval1, 0, NULL TSRMLS_CC);
-
-        ZVAL_STRINGL(&method, "setNext", strlen("setNext"));
-        call_user_function(NULL, &retval, &method, &retval2, 1, &retval1 TSRMLS_CC);
+    prev = zend_read_property(buffer_pool_ce, node, ZEND_STRL("prev"), 1, &rv);
+    next = zend_read_property(buffer_pool_ce, node, ZEND_STRL("next"), 1, &rv);
+    if (Z_TYPE_P(prev) != IS_NULL) {
+        call_user_func_array(prev, "setNext", 1, &next);
     }
 
-    ZVAL_STRINGL(&method, "getNext", strlen("getNext"));
-    call_user_function(NULL, node, &method, &retval, 0, NULL TSRMLS_CC);
-    if (Z_TYPE(retval) == IS_OBJECT) {
-        ZVAL_STRINGL(&method, "getPrev", strlen("getPrev"));
-        call_user_function(NULL, node, &method, &retval1, 0, NULL TSRMLS_CC);
-
-        ZVAL_STRINGL(&method, "setPrev", strlen("setPrev"));
-        call_user_function(NULL, &retval, &method, &retval2, 1, &retval1 TSRMLS_CC);
+    if (Z_TYPE_P(next) != IS_NULL) {
+        call_user_func_array(next, "setPrev", 1, &prev);
     }
 
     RETURN_ZVAL(getThis(), 1, 0);
-
 }
 
 
@@ -365,8 +359,7 @@ PHP_METHOD(buffer_pool, checkout)
     zval rv = {{0}};
 
     hashmap = zend_read_property(buffer_pool_ce, getThis(), ZEND_STRL("hashmap"), 1, &rv);
-    ZVAL_STRINGL(&method, "array_rand", strlen("array_rand"));
-    call_user_function(EG(function_table), getThis(), &method, &key, 1, hashmap TSRMLS_CC);
+    key = call_user_func_array(getThis(), "array_rand", 1, &hashmap);
     if (Z_STRLEN(key) == 0) {
         RETURN_FALSE;
     }

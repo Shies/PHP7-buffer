@@ -100,7 +100,7 @@ PHP_METHOD(buffer_item, isExpired)
         return;
     }
 
-    RETVAL_LONG(0);
+    RETURN_LONG(0);
 }
 
 
@@ -115,7 +115,7 @@ PHP_METHOD(buffer_item, setPrev)
         zend_update_property(buffer_item_ce, self, ZEND_STRL("prev"), value);
     }
 
-    RETVAL_BOOL(1);
+    RETURN_BOOL(1);
 }
 
 
@@ -128,7 +128,7 @@ PHP_METHOD(buffer_item, getPrev)
     zval *self = getThis();
     value = zend_read_property(buffer_item_ce, self, ZEND_STRL("prev"), slient, &rv);
 
-    RETVAL_STRING(Z_STRVAL_P(value));
+    RETURN_STRING(Z_STRVAL_P(value));
 }
 
 
@@ -143,7 +143,7 @@ PHP_METHOD(buffer_item, setNext)
         zend_update_property(buffer_item_ce, self, ZEND_STRL("next"), value);
     }
 
-    RETVAL_BOOL(1);
+    RETURN_BOOL(1);
 }
 
 
@@ -156,7 +156,7 @@ PHP_METHOD(buffer_item, getNext)
     zval *self = getThis();
     value = zend_read_property(buffer_item_ce, self, ZEND_STRL("next"), slient, &rv);
 
-    RETVAL_STRING(Z_STRVAL_P(value));
+    RETURN_STRING(Z_STRVAL_P(value));
 }
 
 
@@ -182,7 +182,7 @@ PHP_METHOD(buffer_item, setEntity)
         zend_update_property(buffer_item_ce, self, ZEND_STRL("hitCount"), hotCount);
     }
 
-    RETVAL_BOOL(1);
+    RETURN_BOOL(1);
 }
 
 
@@ -203,7 +203,7 @@ PHP_METHOD(buffer_item, getEntity)
         zend_update_property(buffer_item_ce, self, ZEND_STRL("hitCount"), hotCount);
     }
 
-    RETVAL_STRING(Z_STRVAL_P(entity));
+    RETURN_STRING(Z_STRVAL_P(entity));
 }
 
 
@@ -216,7 +216,7 @@ PHP_METHOD(buffer_item, getKey)
     zval *self = getThis();
     value = zend_read_property(buffer_item_ce, self, ZEND_STRL("key"), slient, &rv);
 
-    RETVAL_STRING(Z_STRVAL_P(value));
+    RETURN_STRING(Z_STRVAL_P(value));
 }
 
 
@@ -229,7 +229,7 @@ PHP_METHOD(buffer_item, getHitCount)
     zval *self = getThis();
     value = zend_read_property(buffer_item_ce, self, ZEND_STRL("hitCount"), slient, &rv);
 
-    RETVAL_LONG(Z_LVAL_P(value));
+    RETURN_LONG(Z_LVAL_P(value));
 }
 
 
@@ -242,7 +242,7 @@ PHP_METHOD(buffer_item, getTime)
     zval *self = getThis();
     value = zend_read_property(buffer_item_ce, self, ZEND_STRL("createTime"), slient, &rv);
 
-    RETVAL_LONG(Z_LVAL_P(value));
+    RETURN_LONG(Z_LVAL_P(value));
 }
 
 
@@ -262,7 +262,7 @@ PHP_METHOD(buffer_item, __invoke)
         return;
     }
 
-    RETVAL_NULL();
+    RETURN_NULL();
 }
 
 

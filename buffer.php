@@ -24,15 +24,16 @@ var_dump($buf->setNext('bar'));
 var_dump($buf->getNext());
 */
 
-# $p = new Pool(10);
+$p = new Pool(10);
 # var_dump($p->head);
 # var_dump($p->tail);
 # var_dump($p->head->getNext());
 # var_dump($p->tail->getPrev());
-# var_dump($p->set('foo', 'bar'));
+var_dump($p->set('foo', 'bar'));
+print_r($p);
 # var_dump($p->get('foo'));
 # var_dump($p->checkout());
 
-$con = OrgManager::getInstance()->load('con');
-var_dump($con['con']->set("foo", "bar"));
-var_dump($con['con']->get("foo"));
+# $con = OrgManager::getInstance()->load('con');
+# var_dump($con['con']->set("foo", "bar"));
+# var_dump($con['con']->get("foo"));
