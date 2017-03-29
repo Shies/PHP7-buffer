@@ -115,7 +115,7 @@ static zval __construct(char *method_name, zend_string *key, zend_string *value,
     zval kval, vval, ttl;
 
     object_init_ex(&itemval, buffer_item_ce);
-    if (11 == strlen(method_name)) {
+    if (strlen(method_name) > 3) {
         ZVAL_NULL(&kval);
         ZVAL_NULL(&vval);
         params[0] = (zval *)&kval;
