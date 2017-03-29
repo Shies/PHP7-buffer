@@ -35,18 +35,34 @@
 #include "buffer_org.h"
 
 
-static int le_buffer;
-zend_class_entry *buffer_ce;
-
-
-PHP_INI_BEGIN()
-	PHP_INI_ENTRY("buffer.enable", "1",  PHP_INI_ALL, NULL)
-PHP_INI_END();
+ZEND_DECLARE_MODULE_GLOBALS(buffer);
 
 
 const zend_function_entry buffer_methods[] = {
 	{NULL, NULL, NULL}	/* Must be the last line in buffer_functions[] */
 };
+
+
+PHP_INI_MH(OnUpdateSeparator) {
+	BUFFER_G(version) = ZSTR_VAL(new_value);
+	BUFFER_G(version_len) = ZSTR_LEN(new_value);
+
+	return SUCCESS;
+}
+
+
+PHP_INI_BEGIN()
+	STD_PHP_INI_BOOLEAN("buffer.enable", "1",  PHP_INI_ALL, OnUpdateBool, enable, zend_buffer_globals, buffer_globals)
+	STD_PHP_INI_ENTRY("buffer.version", "1.0.0",  PHP_INI_ALL, OnUpdateString, version, zend_buffer_globals, buffer_globals)
+	STD_PHP_INI_ENTRY("buffer.author", "___Shies",  PHP_INI_ALL, OnUpdateString, author, zend_buffer_globals, buffer_globals)
+PHP_INI_END();
+
+
+
+PHP_GINIT_FUNCTION(buffer)
+{
+	memset(buffer_globals, 0, sizeof(*buffer_globals));
+}
 
 
 PHP_MINIT_FUNCTION(buffer)
@@ -63,6 +79,8 @@ PHP_MINIT_FUNCTION(buffer)
 
 PHP_MSHUTDOWN_FUNCTION(buffer)
 {
+    UNREGISTER_INI_ENTRIES();
+
 	return SUCCESS;
 }
 

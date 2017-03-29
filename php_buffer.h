@@ -46,6 +46,14 @@ ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
 
+ZEND_BEGIN_MODULE_GLOBALS(buffer)
+    char        *version;
+    size_t      version_len;
+    char        *author;
+    zend_bool   enable;
+ZEND_END_MODULE_GLOBALS(buffer)
+
+
 extern zend_class_entry *buffer_ce;
 #define BUFFER_STARTUP(module)                    ZEND_MODULE_STARTUP_N(buffer_##module)(INIT_FUNC_ARGS_PASSTHRU)
 #define BUFFER_MINIT_FUNCTION(module)             ZEND_MINIT_FUNCTION(buffer_##module)
