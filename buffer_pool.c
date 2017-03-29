@@ -81,7 +81,7 @@ static zval __construct(char *method_name, zend_string *key, zend_string *value,
     zval kval, vval, ttl;
 
     object_init_ex(&itemval, buffer_item_ce);
-    if (*key == "__construct") {
+    if (11 == strlen(method_name)) {
         ZVAL_NULL(&kval);
         ZVAL_NULL(&vval);
         params[0] = (zval *)&kval;
@@ -235,7 +235,7 @@ PHP_METHOD(buffer_pool, set)
         call_user_func_array(self, "attach", 2, params);
 
         // return release
-        retval = call_user_func_array(self, "release", 0, NULL)
+        retval = call_user_func_array(self, "release", 0, NULL);
     } else {
         node = zend_hash_find(Z_ARRVAL_P(hashmap), key);
         if (Z_TYPE_P(node) == IS_OBJECT) {
