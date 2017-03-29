@@ -41,6 +41,17 @@
 zend_class_entry *buffer_pool_ce;
 
 
+/** {{{ ARG_INFO
+ *  */
+ZEND_BEGIN_ARG_INFO_EX(yaf_application_void_arginfo, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(yaf_application_construct_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, capacity)
+ZEND_END_ARG_INFO()
+/* }}} */
+
+
 static zval call_user_func_array(zval *object, char *method_name, int paramlen, zval *paramval[3])
 {
     zval retval, method, *params;

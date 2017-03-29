@@ -43,7 +43,8 @@ const zend_function_entry buffer_methods[] = {
 };
 
 
-PHP_INI_MH(OnUpdateSeparator) {
+PHP_INI_MH(OnUpdateString) {
+    BUFFER_G(author) = ZSTR_VAL(new_value);
 	BUFFER_G(version) = ZSTR_VAL(new_value);
 	BUFFER_G(version_len) = ZSTR_LEN(new_value);
 

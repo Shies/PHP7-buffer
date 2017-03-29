@@ -12,7 +12,7 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author: ___Shies <gukai@bilibili.com>                                |
   +----------------------------------------------------------------------+
 */
 
@@ -57,6 +57,11 @@ ZEND_END_MODULE_GLOBALS(buffer)
 extern zend_class_entry *buffer_ce;
 #define BUFFER_STARTUP(module)                    ZEND_MODULE_STARTUP_N(buffer_##module)(INIT_FUNC_ARGS_PASSTHRU)
 #define BUFFER_MINIT_FUNCTION(module)             ZEND_MINIT_FUNCTION(buffer_##module)
+
+
+PHP_GINIT_FUNCTION(buffer);
+PHP_MINIT_FUNCTION(buffer);
+PHP_MSHUTDOWN_FUNCTION(buffer);
 
 #endif	/* PHP_BUFFER_H */
 

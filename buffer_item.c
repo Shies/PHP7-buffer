@@ -37,6 +37,19 @@
 zend_class_entry *buffer_item_ce;
 
 
+/** {{{ ARG_INFO
+ *  */
+ZEND_BEGIN_ARG_INFO_EX(yaf_application_void_arginfo, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(yaf_application_construct_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, value)
+	ZEND_ARG_INFO(0, expires)
+ZEND_END_ARG_INFO()
+/* }}} */
+
+
 static char *microtime(void)
 {
     struct timeval time;
