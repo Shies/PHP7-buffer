@@ -8,12 +8,6 @@
 class CachePool
 {
     /**
-     * @var array
-     * 采用lru+hashmap实时过滤
-     */
-    protected $hashmap = [];
-
-    /**
      * @var CacheItem
      * 链表头部
      */
@@ -24,6 +18,12 @@ class CachePool
      * 链表尾部
      */
     protected $tail;
+
+    /**
+     * @var array
+     * 采用lru+hashmap实时过滤
+     */
+    protected $hashmap;
 
     /**
      * @var int
@@ -47,6 +47,7 @@ class CachePool
      */
     private function init($capacity)
     {
+        $this->hashmap = [];
         $this->capacity = $capacity;
 
         $this->head = new CacheItem(null, null);
@@ -77,7 +78,7 @@ class CachePool
      * @param  null|string $key
      * @return null
      */
-    public function get($key = null)
+    public function get($key)
     {
         // 检查当前节点对象是否存活
         if (!isset($this->hashmap[$key])) {
@@ -199,11 +200,11 @@ class CachePool
         }
 
         $obj = $this->detach($this->hashmap[$key]);
-        if ($obj) {
-            unset($this->hashmap[$key]);
+        if (null !== $obj) {
+            unset($obj->hashmap[$key]);
         }
 
-        return ($obj = true);
+        return (true);
     }
 
 

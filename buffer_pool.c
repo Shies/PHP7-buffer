@@ -74,9 +74,30 @@ static zval call_user_func_array(zval *object, char *method_name, int paramlen, 
 }
 
 
-static int initObj(zval *self, zend_string *key, zval *hashmap)
+static zval __construct(char *method_name, zend_string *key, zend_string *value, int expired)
 {
-    return (int) SUCCESS;
+    zval *params[3];
+    zval itemval;
+    zval kval, vval, ttl;
+
+    object_init_ex(&itemval, buffer_item_ce);
+    if (*key == "__construct") {
+        ZVAL_NULL(&kval);
+        ZVAL_NULL(&vval);
+        params[0] = (zval *)&kval;
+        params[1] = (zval *)&vval;
+        call_user_func_array(&itemval, "__construct", 2, params);
+    } else {
+        ZVAL_LONG(&ttl, expired);
+        ZVAL_STRINGL(&kval, ZSTR_VAL(key), ZSTR_LEN(key));
+        ZVAL_STRINGL(&vval, ZSTR_VAL(value), ZSTR_LEN(value));
+        params[0] = (zval *)&kval;
+        params[1] = (zval *)&vval;
+        params[2] = (zval *)&ttl;
+        call_user_func_array(&itemval, "__construct", 3, params);
+    }
+
+    return itemval;
 }
 
 
@@ -98,15 +119,8 @@ PHP_METHOD(buffer_pool, __construct)
         zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
     }
 
-    object_init_ex(&itemval, buffer_item_ce);
-
-    zval knull, vnull;
-    ZVAL_NULL(&knull);
-    ZVAL_NULL(&vnull);
-    params[0] = (zval *)&knull;
-    params[1] = (zval *)&vnull;
-    call_user_func_array(&itemval, "__construct", 2, params);
-
+    // init __construct function
+    itemval = __construct("__construct", NULL, NULL, 0);
 
     if (Z_TYPE(itemval) == IS_OBJECT) {
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("head"), &itemval);
@@ -114,23 +128,14 @@ PHP_METHOD(buffer_pool, __construct)
     }
 
     zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), slient, &rv);
+    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), slient, &rv);
     if (Z_TYPE_P(head) == IS_OBJECT) {
         zend_update_property(buffer_pool_ce, head, ZEND_STRL("next"), &itemval);
-        if (Z_TYPE(itemval) != IS_OBJECT) {
-            php_printf("%s", "throw exception");
-            RETURN_FALSE;
-        }
     }
 
-    zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), slient, &rv);
     if (Z_TYPE_P(tail) == IS_OBJECT) {
         zend_update_property(buffer_pool_ce, tail, ZEND_STRL("prev"), &itemval);
-        if (Z_TYPE(itemval) != IS_OBJECT) {
-            php_printf("%s", "throw exception");
-            RETURN_FALSE;
-        }
     }
-
 
     RETURN_LONG(1);
 }
@@ -202,8 +207,7 @@ PHP_METHOD(buffer_pool, set)
     int expired;
     zend_string *key, *value;
     zval *capacity, *self, *node, *hashmap, *head, *params[3];
-    zval retval, itemval;
-    zval kval, vval, ttl, simple;
+    zval retval, itemval, simple;
     zval rv = {{0}};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "SS|l", &key, &value, &expired) != SUCCESS) {
@@ -218,13 +222,27 @@ PHP_METHOD(buffer_pool, set)
     }
 
     hashmap = zend_read_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), 1, &rv);
-    if (zend_hash_exists(Z_ARRVAL_P(hashmap), key)) {
+    if (!zend_hash_exists(Z_ARRVAL_P(hashmap), key)) {
+        // init __consturct function
+        itemval = __construct("set", key, value, expired);
+
+        add_assoc_zval_ex(hashmap, ZSTR_VAL(key), ZSTR_LEN(key), &itemval);
+        zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), hashmap);
+
+        head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
+        params[0] = (zval *)head;
+        params[1] = (zval *)&itemval;
+        call_user_func_array(self, "attach", 2, params);
+
+        // return release
+        retval = call_user_func_array(self, "release", 0, NULL)
+    } else {
         node = zend_hash_find(Z_ARRVAL_P(hashmap), key);
         if (Z_TYPE_P(node) == IS_OBJECT) {
             ZVAL_STRINGL(&simple, ZSTR_VAL(value), ZSTR_LEN(value));
             call_user_func_array(node, "setEntity", 1, (zval **)&simple);
-            call_user_func_array(self, "detach", 1, &node);
 
+            call_user_func_array(self, "detach", 1, &node);
             head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
             params[0] = head;
             params[1] = node;
@@ -233,26 +251,6 @@ PHP_METHOD(buffer_pool, set)
         }
     }
 
-    object_init_ex(&itemval, buffer_item_ce);
-
-    ZVAL_LONG(&ttl, expired);
-    ZVAL_STRINGL(&kval, ZSTR_VAL(key), ZSTR_LEN(key));
-    ZVAL_STRINGL(&vval, ZSTR_VAL(value), ZSTR_LEN(value));
-
-    params[0] = (zval *)&kval;
-    params[1] = (zval *)&vval;
-    params[2] = (zval *)&ttl;
-    call_user_func_array(&itemval, "__construct", 3, params);
-
-    add_assoc_zval_ex(hashmap, ZSTR_VAL(key), ZSTR_LEN(key), &itemval);
-    zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), hashmap);
-
-    head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), 1, &rv);
-    params[0] = (zval *)head;
-    params[1] = (zval *)&itemval;
-    call_user_func_array(self, "attach", 2, params);
-
-    retval = call_user_func_array(self, "release", 0, NULL);
     RETURN_BOOL(Z_TYPE(retval));
 }
 
@@ -442,10 +440,10 @@ BUFFER_MINIT_FUNCTION(pool)
     INIT_CLASS_ENTRY(ce, "Pool", pool_methods);
     buffer_pool_ce = zend_register_internal_class(&ce TSRMLS_CC);
 
-    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("hashmap"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("head"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("tail"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("capacity"), ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("hashmap"), ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("head"), ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("tail"), ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(buffer_pool_ce, ZEND_STRL("capacity"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
     BUFFER_STARTUP(item);
 

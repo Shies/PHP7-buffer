@@ -145,9 +145,9 @@ BUFFER_MINIT_FUNCTION(org)
     INIT_CLASS_ENTRY(ce, "OrgManager", org_methods);
     buffer_org_ce = zend_register_internal_class(&ce TSRMLS_CC);
 
-    zend_declare_property_null(buffer_org_ce, ZEND_STRL("instance"), ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
-    zend_declare_property_null(buffer_org_ce, ZEND_STRL("pool"), ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
-    zend_declare_property_null(buffer_org_ce, ZEND_STRL("adapter"), ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(buffer_org_ce, ZEND_STRL("instance"), ZEND_ACC_PROTECTED|ZEND_ACC_STATIC TSRMLS_CC);
+    zend_declare_property_null(buffer_org_ce, ZEND_STRL("pool"), ZEND_ACC_PROTECTED|ZEND_ACC_STATIC TSRMLS_CC);
+    zend_declare_property_null(buffer_org_ce, ZEND_STRL("adapter"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
     BUFFER_STARTUP(item);
     BUFFER_STARTUP(pool);

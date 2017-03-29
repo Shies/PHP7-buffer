@@ -294,10 +294,10 @@ BUFFER_MINIT_FUNCTION(item)
     zend_declare_property_null(buffer_item_ce, ZEND_STRL("key"), ZEND_ACC_PUBLIC TSRMLS_CC);
     zend_declare_property_null(buffer_item_ce, ZEND_STRL("prev"), ZEND_ACC_PUBLIC TSRMLS_CC);
     zend_declare_property_null(buffer_item_ce, ZEND_STRL("next"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_item_ce, ZEND_STRL("createTime"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_item_ce, ZEND_STRL("expireTime"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_item_ce, ZEND_STRL("entity"), ZEND_ACC_PUBLIC TSRMLS_CC);
-    zend_declare_property_null(buffer_item_ce, ZEND_STRL("hitCount"), ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(buffer_item_ce, ZEND_STRL("createTime"), ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(buffer_item_ce, ZEND_STRL("expireTime"), ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(buffer_item_ce, ZEND_STRL("entity"), ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_null(buffer_item_ce, ZEND_STRL("hitCount"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	return SUCCESS;
 }

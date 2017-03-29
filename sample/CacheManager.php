@@ -18,13 +18,22 @@ class CacheManager
      * @var array
      * 缓存池子
      */
-    protected static $pool = [];
+    protected static $pool;
 
     /**
      * can implements interface
      * @var string|object
      */
     protected $adapter;
+
+
+    /**
+     * CacheManager constructor.
+     */
+    public function __construct()
+    {
+        static::$pool = [];
+    }
 
 
     /**

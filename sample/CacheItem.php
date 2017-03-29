@@ -11,19 +11,19 @@ class CacheItem
      * @var string
      * 当前对象所映射的键值
      */
-    protected $key;
+    public $key;
 
     /**
      * @var mixed
      * 链表上一个节点
      */
-    protected $prev;
+    public $prev;
 
     /**
      * @var mixed
      * 链表下一个节点
      */
-    protected $next;
+    public $next;
 
     /**
      * @var int
