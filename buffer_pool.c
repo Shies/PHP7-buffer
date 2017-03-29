@@ -43,11 +43,34 @@ zend_class_entry *buffer_pool_ce;
 
 /** {{{ ARG_INFO
  *  */
-ZEND_BEGIN_ARG_INFO_EX(yaf_application_void_arginfo, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_void_arginfo, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(yaf_application_construct_arginfo, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_construct_arginfo, 0, 0, 1)
 	ZEND_ARG_INFO(0, capacity)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_get_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_set_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, value)
+	ZEND_ARG_INFO(0, expired)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_attach_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, head)
+	ZEND_ARG_INFO(0, node)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_detach_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, node)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_delete_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
 ZEND_END_ARG_INFO()
 /* }}} */
 

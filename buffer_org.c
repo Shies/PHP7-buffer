@@ -42,10 +42,14 @@ zend_class_entry *buffer_org_ce;
 
 /** {{{ ARG_INFO
  *  */
-ZEND_BEGIN_ARG_INFO_EX(yaf_application_void_arginfo, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(buffer_org_void_arginfo, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(yaf_application_construct_arginfo, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(buffer_org_construct_arginfo, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(buffer_org_load_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 /* }}} */
 
