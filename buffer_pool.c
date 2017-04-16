@@ -54,13 +54,13 @@ ZEND_BEGIN_ARG_INFO_EX(buffer_pool_get_arginfo, 0, 0, 1)
 	ZEND_ARG_INFO(0, key)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(buffer_pool_set_arginfo, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_set_arginfo, 0, 0, 3)
 	ZEND_ARG_INFO(0, key)
 	ZEND_ARG_INFO(0, value)
 	ZEND_ARG_INFO(0, expired)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(buffer_pool_attach_arginfo, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(buffer_pool_attach_arginfo, 0, 0, 2)
 	ZEND_ARG_INFO(0, head)
 	ZEND_ARG_INFO(0, node)
 ZEND_END_ARG_INFO()
@@ -78,50 +78,46 @@ ZEND_END_ARG_INFO()
 static zval call_user_func_array(zval *object, char *method_name, int paramlen, zval *paramval[3])
 {
     zval retval, method, *params;
-    if (Z_TYPE_P(object) != IS_OBJECT) {
+    if (Z_TYPE_P(object) == IS_STRING || Z_TYPE_P(object) == IS_ARRAY) {
         ZVAL_NULL(&retval);
         return (zval) retval;
+    } else if (Z_TYPE_P(object) == IS_NULL) {
+        object = NULL;
     }
 
     if (1 == paramlen) {
         ZVAL_STRINGL(&method, method_name, strlen(method_name));
-        call_user_function(NULL, object, &method, &retval, 1, *paramval TSRMLS_CC);
+        call_user_function(EG(function_table), object, &method, &retval, 1, *paramval TSRMLS_CC);
     } else if (2 == paramlen) {
         params = safe_emalloc(sizeof(zval), 2, 0);
         ZVAL_COPY_VALUE(&params[0], paramval[0]);
         ZVAL_COPY_VALUE(&params[1], paramval[1]);
         ZVAL_STRINGL(&method, method_name, strlen(method_name));
-        call_user_function(NULL, object, &method, &retval, 2, params TSRMLS_CC);
+        call_user_function(EG(function_table), object, &method, &retval, 2, params TSRMLS_CC);
     } else if (3 == paramlen) {
         params = safe_emalloc(sizeof(zval), 3, 0);
         ZVAL_COPY_VALUE(&params[0], paramval[0]);
         ZVAL_COPY_VALUE(&params[1], paramval[1]);
         ZVAL_COPY_VALUE(&params[2], paramval[2]);
         ZVAL_STRINGL(&method, method_name, strlen(method_name));
-        call_user_function(NULL, object, &method, &retval, 3, params TSRMLS_CC);
+        call_user_function(EG(function_table), object, &method, &retval, 3, params TSRMLS_CC);
     } else {
         ZVAL_STRINGL(&method, method_name, strlen(method_name));
-        call_user_function(NULL, object, &method, &retval, 0, NULL TSRMLS_CC);
+        call_user_function(EG(function_table), object, &method, &retval, 0, NULL TSRMLS_CC);
     }
 
-    return retval;
+    return (zval) retval;
 }
 
 
-static zval __construct(char *method_name, zend_string *key, zend_string *value, int expired)
+static zval __construct(int paramlen, zend_string *key, zend_string *value, int expired)
 {
-    zval *params[3];
+    zval *params[paramlen];
     zval itemval;
     zval kval, vval, ttl;
 
     object_init_ex(&itemval, buffer_item_ce);
-    if (strlen(method_name) > 3) {
-        ZVAL_NULL(&kval);
-        ZVAL_NULL(&vval);
-        params[0] = (zval *)&kval;
-        params[1] = (zval *)&vval;
-        call_user_func_array(&itemval, "__construct", 2, params);
-    } else {
+    if (paramlen > 2) {
         ZVAL_LONG(&ttl, expired);
         ZVAL_STRINGL(&kval, ZSTR_VAL(key), ZSTR_LEN(key));
         ZVAL_STRINGL(&vval, ZSTR_VAL(value), ZSTR_LEN(value));
@@ -129,9 +125,15 @@ static zval __construct(char *method_name, zend_string *key, zend_string *value,
         params[1] = (zval *)&vval;
         params[2] = (zval *)&ttl;
         call_user_func_array(&itemval, "__construct", 3, params);
+    } else {
+        ZVAL_NULL(&kval);
+        ZVAL_NULL(&vval);
+        params[0] = (zval *)&kval;
+        params[1] = (zval *)&vval;
+        call_user_func_array(&itemval, "__construct", 2, params);
     }
 
-    return itemval;
+    return (zval) itemval;
 }
 
 
@@ -154,8 +156,7 @@ PHP_METHOD(buffer_pool, __construct)
     }
 
     // init __construct function
-    itemval = __construct("__construct", NULL, NULL, 0);
-
+    itemval = __construct(2, NULL, NULL, 0);
     if (Z_TYPE(itemval) == IS_OBJECT) {
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("head"), &itemval);
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("tail"), &itemval);
@@ -258,7 +259,7 @@ PHP_METHOD(buffer_pool, set)
     hashmap = zend_read_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), 1, &rv);
     if (!zend_hash_exists(Z_ARRVAL_P(hashmap), key)) {
         // init __consturct function
-        itemval = __construct("set", key, value, expired);
+        itemval = __construct(3, key, value, expired);
 
         add_assoc_zval_ex(hashmap, ZSTR_VAL(key), ZSTR_LEN(key), &itemval);
         zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), hashmap);
@@ -336,7 +337,6 @@ PHP_METHOD(buffer_pool, attach)
 
     // node setPrev head
     call_user_func_array(node, "setPrev", 1, &head);
-
     next = zend_read_property(buffer_pool_ce, head, ZEND_STRL("next"), 1, &rv);
     if (Z_TYPE_P(next) != IS_NULL) {
         call_user_func_array(node, "setNext", 1, &next);
@@ -391,7 +391,8 @@ PHP_METHOD(buffer_pool, checkout)
     zval rv = {{0}};
 
     hashmap = zend_read_property(buffer_pool_ce, getThis(), ZEND_STRL("hashmap"), 1, &rv);
-    key = call_user_func_array(getThis(), "array_rand", 1, &hashmap);
+    ZVAL_NULL(&method);
+    key = call_user_func_array(&method, "array_rand", 1, &hashmap);
     if (Z_STRLEN(key) == 0) {
         RETURN_FALSE;
     }
@@ -451,15 +452,15 @@ PHP_METHOD(buffer_pool, __destruct)
 
 
 const zend_function_entry pool_methods[] = {
-    PHP_ME(buffer_pool, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+    PHP_ME(buffer_pool, __construct, buffer_pool_construct_arginfo, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
     PHP_ME(buffer_pool, clear, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_pool, get, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_pool, set, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_pool, get, buffer_pool_get_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_pool, set, buffer_pool_set_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_pool, release, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_pool, attach, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_pool, detach, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_pool, attach, buffer_pool_attach_arginfo, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_pool, detach, buffer_pool_detach_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_pool, checkout, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_pool, delete, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_pool, delete, buffer_pool_delete_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_pool, size, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_pool, proto, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_pool, __destruct, NULL, ZEND_ACC_PUBLIC)

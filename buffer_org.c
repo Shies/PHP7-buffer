@@ -103,7 +103,7 @@ PHP_METHOD(buffer_org, load)
 
     poolmap = zend_read_static_property(buffer_org_ce, ZEND_STRL("pool"), slient);
     if (zend_hash_exists(Z_ARRVAL_P(poolmap), name)) {
-        RETURN_ZVAL(poolmap, 1, 0);
+        RETURN_ZVAL(zend_hash_find(Z_ARRVAL_P(poolmap), name), 1, 0);
     }
 
     object_init_ex(&pool, buffer_pool_ce);
@@ -117,7 +117,7 @@ PHP_METHOD(buffer_org, load)
     }
 
 
-    RETURN_ZVAL(poolmap, 1, 0);
+    RETURN_ZVAL(zend_hash_find(Z_ARRVAL_P(poolmap), name), 1, 0);
 }
 
 
@@ -143,9 +143,9 @@ PHP_METHOD(buffer_org, getPool)
 
 
 const zend_function_entry org_methods[] = {
-    PHP_ME(buffer_org, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+    PHP_ME(buffer_org, __construct, buffer_org_construct_arginfo, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
     PHP_ME(buffer_org, getInstance, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
-    PHP_ME(buffer_org, load, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_org, load, buffer_org_load_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_org, getAdapter, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_org, getPool, NULL, ZEND_ACC_PUBLIC)
 	{NULL, NULL, NULL}	/* Must be the last line in buffer_functions[] */

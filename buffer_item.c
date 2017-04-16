@@ -42,7 +42,7 @@ zend_class_entry *buffer_item_ce;
 ZEND_BEGIN_ARG_INFO_EX(buffer_item_void_arginfo, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(buffer_item_construct_arginfo, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(buffer_item_construct_arginfo, 0, 0, 3)
 	ZEND_ARG_INFO(0, key)
 	ZEND_ARG_INFO(0, value)
 	ZEND_ARG_INFO(0, expires)
@@ -293,13 +293,13 @@ PHP_METHOD(buffer_item, __invoke)
 
 
 const zend_function_entry item_methods[] = {
-    PHP_ME(buffer_item, __construct, NULL, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+    PHP_ME(buffer_item, __construct, buffer_item_construct_arginfo, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
     PHP_ME(buffer_item, isExpired, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_item, setPrev, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_item, setPrev, buffer_item_setPrev_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_item, getPrev, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_item, setNext, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_item, setNext, buffer_item_setNext_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_item, getNext, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(buffer_item, setEntity, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(buffer_item, setEntity, buffer_item_setEntity_arginfo, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_item, getEntity, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_item, getKey, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(buffer_item, getHitCount, NULL, ZEND_ACC_PUBLIC)
