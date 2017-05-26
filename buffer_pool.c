@@ -145,15 +145,14 @@ PHP_METHOD(buffer_pool, __construct)
     zend_bool slient;
     zval rv = {{0}};
 
-
     self = getThis();
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &capacity) == FAILURE) {
         return;
-    } else {
-        array_init(&map);
-        zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), &map);
-        zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
     }
+
+    array_init(&map);
+    zend_update_property(buffer_pool_ce, self, ZEND_STRL("hashmap"), &map);
+    zend_update_property_long(buffer_pool_ce, self, ZEND_STRL("capacity"), capacity);
 
     // init __construct function
     itemval = __construct(2, NULL, NULL, 0);
@@ -164,15 +163,13 @@ PHP_METHOD(buffer_pool, __construct)
 
     zval *head = zend_read_property(buffer_pool_ce, self, ZEND_STRL("head"), slient, &rv);
     zval *tail = zend_read_property(buffer_pool_ce, self, ZEND_STRL("tail"), slient, &rv);
-    if (Z_TYPE_P(head) == IS_OBJECT) {
-        zend_update_property(buffer_pool_ce, head, ZEND_STRL("next"), &itemval);
+    if (Z_TYPE_P(head) != IS_OBJECT ||
+        Z_TYPE_P(tail) != IS_OBJECT) {
+        return;
     }
 
-    if (Z_TYPE_P(tail) == IS_OBJECT) {
-        zend_update_property(buffer_pool_ce, tail, ZEND_STRL("prev"), &itemval);
-    }
-
-    RETURN_LONG(1);
+    zend_update_property(buffer_pool_ce, head, ZEND_STRL("next"), &itemval);
+    zend_update_property(buffer_pool_ce, tail, ZEND_STRL("prev"), &itemval);
 }
 
 
@@ -269,8 +266,10 @@ PHP_METHOD(buffer_pool, set)
         params[1] = (zval *)&itemval;
         call_user_func_array(self, "attach", 2, params);
 
-        // return release
         retval = call_user_func_array(self, "release", 0, NULL);
+        // return release
+        RETURN_BOOL(Z_TYPE(retval));
+
     } else {
         node = zend_hash_find(Z_ARRVAL_P(hashmap), key);
         if (Z_TYPE_P(node) == IS_OBJECT) {
@@ -282,11 +281,12 @@ PHP_METHOD(buffer_pool, set)
             params[0] = head;
             params[1] = node;
             call_user_func_array(self, "attach", 2, params);
+
             RETURN_BOOL(1);
         }
-    }
 
-    RETURN_BOOL(Z_TYPE(retval));
+        RETURN_BOOL(0);
+    }
 }
 
 

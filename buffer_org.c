@@ -110,8 +110,8 @@ PHP_METHOD(buffer_org, load)
 
     ZVAL_LONG(&vnull, 10);
     ZVAL_STRINGL(&method, "__construct", strlen("__construct"));
-    call_user_function(NULL, &pool, &method, &retval, 1, &vnull TSRMLS_CC);
     if (Z_TYPE(pool) == IS_OBJECT) {
+        call_user_function(NULL, &pool, &method, &retval, 1, &vnull TSRMLS_CC);
         add_assoc_zval_ex(poolmap, ZSTR_VAL(name), ZSTR_LEN(name), &pool);
         zend_update_static_property(buffer_org_ce, ZEND_STRL("pool"), poolmap);
     }
