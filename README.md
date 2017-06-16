@@ -14,7 +14,7 @@
 3. phpize
 4. ./configure --with-php-config=/php-path/bin/php-config
 5. make && make install
-6. echo "extension=phpdiff.so" >> /php-path/etc/php.ini
+6. echo "extension=buffer.so" >> /php-path/etc/php.ini
 
 ## Usage(使用方法)
 
