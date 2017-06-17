@@ -1,7 +1,7 @@
 # buffer
 =======
 
-## Introation
+## Introduction(介绍)
 
 1. 采用C写的扩展完全不担心性能问题
 2. 采用HashMap数据结构和LRU算法支持此扩展
