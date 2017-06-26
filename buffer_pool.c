@@ -77,7 +77,7 @@ ZEND_END_ARG_INFO()
 
 static zval call_user_func_array(zval *object, char *method_name, int paramlen, zval *paramval[3])
 {
-    zval retval, method, *params;
+    zval retval, method, params[3];
     if (Z_TYPE_P(object) == IS_STRING || Z_TYPE_P(object) == IS_ARRAY) {
         ZVAL_NULL(&retval);
         return (zval) retval;
@@ -89,13 +89,13 @@ static zval call_user_func_array(zval *object, char *method_name, int paramlen, 
         ZVAL_STRINGL(&method, method_name, strlen(method_name));
         call_user_function(EG(function_table), object, &method, &retval, 1, *paramval TSRMLS_CC);
     } else if (2 == paramlen) {
-        params = safe_emalloc(sizeof(zval), 2, 0);
+        // params = safe_emalloc(sizeof(zval), 2, 0);
         ZVAL_COPY_VALUE(&params[0], paramval[0]);
         ZVAL_COPY_VALUE(&params[1], paramval[1]);
         ZVAL_STRINGL(&method, method_name, strlen(method_name));
         call_user_function(EG(function_table), object, &method, &retval, 2, params TSRMLS_CC);
     } else if (3 == paramlen) {
-        params = safe_emalloc(sizeof(zval), 3, 0);
+        // params = safe_emalloc(sizeof(zval), 3, 0);
         ZVAL_COPY_VALUE(&params[0], paramval[0]);
         ZVAL_COPY_VALUE(&params[1], paramval[1]);
         ZVAL_COPY_VALUE(&params[2], paramval[2]);
@@ -128,9 +128,11 @@ static zval __construct(int paramlen, zend_string *key, zend_string *value, int 
     } else {
         ZVAL_NULL(&kval);
         ZVAL_NULL(&vval);
+        ZVAL_LONG(&ttl, -1);
         params[0] = (zval *)&kval;
         params[1] = (zval *)&vval;
-        call_user_func_array(&itemval, "__construct", 2, params);
+        params[2] = (zval *)&ttl;
+        call_user_func_array(&itemval, "__construct", 3, params);
     }
 
     return (zval) itemval;
