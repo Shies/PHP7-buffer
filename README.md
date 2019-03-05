@@ -5,7 +5,21 @@
 
 1. 采用C写的扩展完全不担心性能问题
 2. 采用HashMap数据结构和LRU算法支持此扩展
-3. 此缓冲池支持数据存进buffer中缓存(暂且不支持持久化)
+3. 采用进程级共享本地缓存（local cache），能友好的预备热冷数据
+4. 提供类似于php static静态池，伸缩方便
+5. 参考java实现dynamic cache的生命周期
+
+## Feature(特点)
+
+```text
+能友好的分析热点和冷点数据，并采用相应的措施。分布式怎么共享local cache呢？
+我们可以借用swoole process来实现进程通信，另外达到把单进程数据传送给其它进程，
+大家都知道fpm进程数有限制，并发时，单台机器multi proc共享cache只能通过signal，
+避免了网络io开销
+```
+
+### Origin(来源)
+https://infinite.iteye.com/blog/126753
 
 ## Installation(安装PHP扩展)
 
