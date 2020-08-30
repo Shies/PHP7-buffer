@@ -7,18 +7,19 @@
 2. 采用HashMap数据结构和LRU算法支持此扩展
 3. 采用进程级共享本地缓存（local cache），能友好的预备热冷数据
 4. 提供类似于php static静态池，伸缩方便
-5. 参考java实现dynamic cache的生命周期
+5. 参考Java实现dynamic cache的生命周期
 
 ## Feature(特点)
 
 ```text
-能友好的分析热点和冷点数据，并采用相应的措施。分布式怎么共享local cache呢？
-我们可以借用swoole process来实现进程通信，另外达到把单进程数据传送给其它进程，
+能友好的分析热点和区分冷数据，并采用相应的措施，多进程怎么共享local cache呢？
+我们可以借用swoole_process来实现进程通信，另外达到把单进程数据传送给其它进程，
 大家都知道fpm进程数有限制，并发时，单台机器multi proc共享cache只能通过signal，
-避免了网络io开销
+最终作用避免了网络io开销
 ```
 
 ### Origin(来源)
+
 https://infinite.iteye.com/blog/126753
 
 ## Installation(安装PHP扩展)
@@ -60,12 +61,11 @@ var_dump($con->get("foo"));
 ➜  PHP7-buffer git:(master) ✗ ~/debug/php70-debug/bin/php -f buffer.php
 sample/
 ├── CacheItem.php
-├── CacheManager.php
-├── CacheMath.php
 ├── CachePool.php
+├── CacheManager.php
 ├── CacheMath.php
 └── Service.php
 
-0 directories, 6 files
+0 directories, 5 files
 ```
 
